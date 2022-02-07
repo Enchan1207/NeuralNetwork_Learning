@@ -5,7 +5,7 @@
 from unittest import TestCase
 
 import numpy as np
-from src.component import Adder, Multiplexer
+from src.component import Adder, Multiplexer, Sigmoid, Relu
 
 
 class TestNNComponents(TestCase):
@@ -26,6 +26,9 @@ class TestNNComponents(TestCase):
     def testMultiplexer(self):
         multiplexer = Multiplexer()
 
+        with self.assertRaises(ValueError):
+            multiplexer.backward(np.zeros((2, 3)))
+
         source_1 = np.random.randn(3, 2)
         source_2 = np.random.randn(3, 2)
         forward = multiplexer.forward(source_1, source_2)
@@ -35,3 +38,27 @@ class TestNNComponents(TestCase):
         backward_1, backward_2 = multiplexer.backward(source_3)
         self.assertTrue(np.array_equal(source_1 * source_3, backward_2))
         self.assertTrue(np.array_equal(source_2 * source_3, backward_1))
+
+    def testSigmoid(self):
+        # もうちょっとテストケースらしいことしたかった
+        sigmoid = Sigmoid()
+
+        with self.assertRaises(ValueError):
+            sigmoid.backward(np.zeros((2, 3)))
+
+        source = np.random.randn(3, 2)
+        _ = sigmoid.forward(source)
+
+        dout = np.zeros_like(source) + 1
+        _ = sigmoid.backward(dout)
+
+    def testReLU(self):
+        relu = Relu()
+
+        source = np.random.randn(3, 2)
+        forward = relu.forward(source)
+        self.assertTrue(np.array_equal(source > 0, forward == 1))
+
+        dout = np.zeros_like(source) + 1
+        backward = relu.backward(dout)
+        self.assertTrue(np.array_equal(source > 0, backward == 1))

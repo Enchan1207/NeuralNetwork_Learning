@@ -40,6 +40,9 @@ class Multiplexer:
 
         Returns:
             Tuple[ndarray]: 入力の変化量
+
+        Raises:
+            ValueError: 初期化後、一度もforwardを呼び出さずに呼び出した場合.
         """
 
         if self._x is None or self._y is None:
