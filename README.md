@@ -1,5 +1,7 @@
 # NeuralNetwork Learning
 
+[![Unittest](https://github.com/Enchan1207/NeuralNetwork_Learning/actions/workflows/ci.yml/badge.svg)](https://github.com/Enchan1207/NeuralNetwork_Learning/actions/workflows/ci.yml)
+
 ## Overview
 
 「ゼロから始めるDeepLearning」([書籍](https://www.amazon.co.jp/dp/4873117585/))を読みながら実装した Neural Networkのコード群.
