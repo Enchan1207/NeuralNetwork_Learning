@@ -1,0 +1,35 @@
+#
+# 単体テストワークフロー
+#
+
+name: Unittest
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # setup python
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      # install dependencies
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install .
+
+      # unittest
+      - name: Unit test
+        run: |
+          python3 -m unittest discover tests
