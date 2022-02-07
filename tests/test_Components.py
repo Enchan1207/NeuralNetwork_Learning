@@ -5,7 +5,7 @@
 from unittest import TestCase
 
 import numpy as np
-from src.component import Adder, Multiplexer, Sigmoid, Relu
+from src.component import Adder, Affine, Multiplexer, Relu, Sigmoid
 
 
 class TestNNComponents(TestCase):
@@ -62,3 +62,16 @@ class TestNNComponents(TestCase):
         dout = np.zeros_like(source) + 1
         backward = relu.backward(dout)
         self.assertTrue(np.array_equal(source > 0, backward == 1))
+
+    def testAffine(self):
+
+        weight = np.random.randn(3, 2)
+        bias = np.zeros((2, 2))
+
+        affine = Affine(weight, bias)
+
+        source = np.random.randn(2, 3)
+        forward = affine.forward(source)
+
+        dout = np.zeros_like(source) + 1
+        # backward = affine.backward(dout)
