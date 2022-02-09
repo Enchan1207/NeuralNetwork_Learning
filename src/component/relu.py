@@ -39,7 +39,7 @@ class Relu:
             ndarray: 入力の変化量
 
         Raises:
-            ValueError: 初期化後、一度もforwardを呼び出さずに呼び出した場合.
+            ValueError: 初期化後, 一度もforwardを呼び出さずに呼び出した場合.
         """
         if self._y is None:
             raise ValueError("Please call forward() at least once before call backward().")

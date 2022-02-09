@@ -5,7 +5,7 @@
 from unittest import TestCase
 
 import numpy as np
-from src.component import Adder, Affine, Multiplexer, Relu, Sigmoid
+from src.component import Adder, Affine, Multiplexer, Relu, Sigmoid, SoftmaxWithLoss
 
 
 class TestNNComponents(TestCase):
@@ -75,3 +75,18 @@ class TestNNComponents(TestCase):
 
         dout = np.zeros_like(source) + 1
         # backward = affine.backward(dout)
+
+    def testSoftmaxWithLoss(self):
+
+        softmax_with_loss = SoftmaxWithLoss()
+
+        with self.assertRaises(ValueError):
+            softmax_with_loss.backward(np.zeros((2, 3)))
+
+        batch_size, data_size = 2, 3
+        source = np.random.randn(batch_size, data_size)
+        teacher = np.array([
+            [0.0, 1.0, 0.0],
+            [1.0, 0.0, 0.0]
+        ])
+        forward = softmax_with_loss.forward(source, teacher)

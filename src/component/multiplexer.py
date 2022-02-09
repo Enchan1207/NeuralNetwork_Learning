@@ -42,13 +42,13 @@ class Multiplexer:
             Tuple[ndarray]: 入力の変化量
 
         Raises:
-            ValueError: 初期化後、一度もforwardを呼び出さずに呼び出した場合.
+            ValueError: 初期化後, 一度もforwardを呼び出さずに呼び出した場合.
         """
 
         if self._x is None or self._y is None:
             raise ValueError("Please call forward() at least once before call backward().")
 
-        # それぞれ、forwardで入力された量*doutが返る
+        # それぞれ, forwardで入力された量*doutが返る
         dx = self._y * dout
         dy = self._x * dout
 

@@ -6,3 +6,4 @@ from .affine import Affine
 from .multiplexer import Multiplexer
 from .relu import Relu
 from .sigmoid import Sigmoid
+from .softmax_with_loss import SoftmaxWithLoss
