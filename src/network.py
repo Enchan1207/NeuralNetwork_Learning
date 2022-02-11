@@ -2,21 +2,25 @@
 # ニューラルネットワーク
 #
 
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numpy import ndarray
 
 from src.activator import Activator
 from src.layer import Layer
+from src.layerdiff import LayerDifferencial
 from src.lossfunc import CrossEntropyError, LossFunction
+from src.optimizer import Optimizer, SGD
 
 
 class NeuralNetwork:
     """ニューラルネットワーク
     """
 
-    def __init__(self, layers: Optional[List[Layer]] = None, loss_func: Optional[LossFunction] = None) -> None:
+    def __init__(self,
+                 layers: Optional[List[Layer]] = None,
+                 loss_func: Optional[LossFunction] = None) -> None:
         """レイヤと損失関数を指定してニューラルネットワークを初期化します.
 
         Args:
@@ -66,7 +70,7 @@ class NeuralNetwork:
 
         return loss
 
-    def gradient(self, x: ndarray, t: ndarray):
+    def gradient(self, x: ndarray, t: ndarray) -> List[Tuple[Layer, LayerDifferencial]]:
         """訓練データおよび教師データを投入し、各レイヤの勾配を計算します.
 
         Args:
@@ -74,7 +78,7 @@ class NeuralNetwork:
             t (ndarray): 教師データ
 
         Returns:
-            Any: [description]
+            List[Tuple[Layer, LayerDifferencial]]: 勾配の計算結果.
         """
 
         # まずはforwardを回して、レイヤの状態を設定する
@@ -85,10 +89,14 @@ class NeuralNetwork:
         # 損失関数の逆伝播を求め、
         loss_back = self.loss_func.backward(dout)
 
-        # 次にレイヤのbackwardを回し、各レイヤのw, bの変化量を求め…
+        # 次にレイヤのbackwardを回して勾配とする
+        differencials: List[Tuple[Layer, LayerDifferencial]] = []
         result = loss_back
         for i in range(len(self.layers) - 1, 0, -1):  # レイヤ数~0で回すため
             layer = self.layers[i]
-            result, delta_weight, delta_bias = layer.backward(result)
+            layer_diff = layer.backward(result)
+            result = layer_diff.dx
 
-        # TODO: まとめて突っ返す
+            differencials.append((layer, layer_diff))
+
+        return differencials
