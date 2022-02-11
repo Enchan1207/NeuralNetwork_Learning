@@ -4,14 +4,12 @@
 
 from typing import List, Optional, Tuple, Union
 
-import numpy as np
 from numpy import ndarray
 
 from src.activator import Activator
 from src.layer import Layer
 from src.layerdiff import LayerDifferencial
 from src.lossfunc import CrossEntropyError, LossFunction
-from src.optimizer import Optimizer, SGD
 
 
 class NeuralNetwork:
@@ -29,6 +27,30 @@ class NeuralNetwork:
         """
         self.layers: List[Layer] = layers or []
         self.loss_func = loss_func or CrossEntropyError()
+
+    def addlayer(self, layer: Layer, index: Optional[int] = None):
+        """ネットワークの指定位置にレイヤを追加します.
+
+        Args:
+            layer (Layer): 追加するレイヤ
+            index (Optional[int]): 追加対象の位置.
+        """
+
+        if index is None:
+            self.layers.append(layer)
+        else:
+            self.layers.insert(index, layer)
+
+    def removelayer(self, index: Optional[int] = None):
+        """ネットワークの指定位置にあるレイヤを削除します.
+
+        Args:
+            index (Optional[int]): 削除するレイヤの位置
+        """
+        if index is None:
+            self.layers.pop()
+        else:
+            self.layers.pop(index)
 
     def predict(self, x: ndarray) -> ndarray:
         """入力を投入し、推論を行います.
