@@ -42,7 +42,7 @@ class Layer:
 
         self._x = x
 
-        result = np.dot(x, self.w) + self.b
+        result: ndarray = np.dot(x, self.w) + self.b
 
         if not pass_activator:
             result = self.activator.forward(result)

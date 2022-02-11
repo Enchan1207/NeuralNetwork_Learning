@@ -30,10 +30,10 @@ class Softmax(Activator):
         # 横方向の合計値を計算
         sum_x = np.sum(x - c, axis=-1, keepdims=True)
 
-        y = exp_x / sum_x
+        y: ndarray = exp_x / sum_x
         self._y = y
 
-        return exp_x / sum_x
+        return y
 
     def backward(self, dout: ndarray) -> ndarray:
         if self._y is None:
@@ -46,6 +46,6 @@ class Softmax(Activator):
         sum_y = np.sum(self._y * dout, axis=-1, keepdims=True)
 
         # あとは普通に計算するだけ.
-        result = self._y * (dout - sum_y)
+        result: ndarray = self._y * (dout - sum_y)
 
         return result

@@ -1,7 +1,7 @@
 #
 # 交差エントロピー誤差
 #
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from numpy import ndarray
@@ -40,13 +40,16 @@ class CrossEntropyError(LossFunction):
         # y[np.arange[batch_size], t]により, 各バッチについて「正解」にあたる部分のyの値を持ってくる.
         # (np.array[行, 列]とするとスライスを取得できる)
         cell = t * np.log(y[np.arange(batch_size), t] + 1E-7)  # 1E-7は log(0)=NaN の回避
-        return -np.sum(cell) / batch_size
 
-    def backward(self, dout: ndarray) -> ndarray:
+        result: ndarray = -np.sum(cell) / batch_size
+        return result
+
+    def backward(self, dout: Union[ndarray, float]) -> ndarray:
         if self._t is None or self._y is None:
             raise ValueError("Please call forward() at least once before call backward().")
 
         # 交差エントロピー誤差単体の逆伝播は
         # -t_i/y_i * dout
+        result: ndarray = -(self._t / self._y) * dout
 
-        return -(self._t / self._y) * dout
+        return result

@@ -18,7 +18,7 @@ class Relu(Activator):
         self._y: Optional[ndarray] = None
 
     def forward(self, x: ndarray) -> ndarray:
-        y = np.vectorize(lambda n: 1 if n > 0 else 0)(x > 0)
+        y: ndarray = np.vectorize(lambda n: 1 if n > 0 else 0)(x > 0)
 
         self._y = y
         return y
@@ -27,4 +27,5 @@ class Relu(Activator):
         if self._y is None:
             raise ValueError("Please call forward() at least once before call backward().")
 
-        return self._y * dout
+        result: ndarray = self._y * dout
+        return result
