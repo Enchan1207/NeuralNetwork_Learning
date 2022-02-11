@@ -3,6 +3,7 @@
 #
 
 from abc import ABCMeta, abstractmethod
+from typing import Union
 
 from numpy import ndarray
 
@@ -25,11 +26,11 @@ class LossFunction(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def backward(self, dout: ndarray) -> ndarray:
+    def backward(self, dout: Union[ndarray, float]) -> ndarray:
         """出力の変化量から, 損失関数の逆伝播を計算します.
 
         Args:
-            dout (ndarray): 出力の変化量
+            dout (Union[ndarray, float]): 出力の変化量
 
         Returns:
             ndarray: 損失関数の逆伝播
