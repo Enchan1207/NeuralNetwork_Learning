@@ -8,6 +8,7 @@ import numpy as np
 from numpy import ndarray
 
 from src.activator import Activator
+from src.layerdiff import LayerDifferencial
 
 
 class Layer:
@@ -48,14 +49,14 @@ class Layer:
 
         return result
 
-    def backward(self, dout: ndarray) -> Tuple[ndarray, ndarray, ndarray]:
+    def backward(self, dout: ndarray) -> LayerDifferencial:
         """このレイヤの逆伝播を計算します.
 
         Args:
             dout (ndarray): 出力の変化量
 
         Returns:
-            Tuple[ndarray, ndarray, ndarray]: 入力の変化量 (dx, dw, db)
+            LayerDifferencial: 入力の変化量
 
         Raises:
             ValueError: 初期化後, 一度もforwardを呼び出さずに呼び出した場合.
@@ -72,4 +73,4 @@ class Layer:
         dw = np.dot(self._x.T, activator_back)
         db = np.sum(activator_back, axis=0)
 
-        return (dx, dw, db)
+        return LayerDifferencial(dx, dw, db)
