@@ -28,7 +28,7 @@ class Softmax(Activator):
         exp_x = np.exp(x - c)
 
         # 横方向の合計値を計算
-        sum_x = np.sum(x - c, axis=-1, keepdims=True)
+        sum_x = np.sum(exp_x, axis=-1, keepdims=True)
 
         y: ndarray = exp_x / sum_x
         self._y = y
