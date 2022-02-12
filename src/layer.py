@@ -3,7 +3,7 @@
 #
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Type
 
 import numpy as np
 from numpy import ndarray
@@ -16,27 +16,28 @@ class Layer:
     """NNの各層を表すクラス
     """
 
-    def __init__(self, w: ndarray, b: ndarray, activator: Activator) -> None:
+    def __init__(self, w: ndarray, b: ndarray, activator: Type[Activator]) -> None:
         """重みとバイアス, 活性化関数を設定してレイヤを初期化します.
 
         Args:
             w (ndarray): 重み
             b (ndarray): バイアス
+            activator (Type[Activator]): 活性化関数
         """
 
         self.w: ndarray = w
         self.b: ndarray = b
-        self.activator = activator
+        self.activator = activator()
 
         self._x: Optional[ndarray] = None
 
     @staticmethod
-    def create_by(shape: Tuple[int, int], activator: Activator) -> Layer:
+    def create_by(shape: Tuple[int, int], activator: Type[Activator]) -> Layer:
         """形状と活性化関数を指定して初期状態のレイヤを生成します.
 
         Args:
             shape (Tuple[int, int]): 形状
-            activator (Activator): 活性化関数
+            activator (Type[Activator]): 活性化関数
 
         Returns:
             Layer: 形状パラメータをもとに生成されたレイヤ
