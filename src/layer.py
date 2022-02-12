@@ -66,6 +66,9 @@ class Layer:
 
         return (row, col)
 
+    def __str__(self) -> str:
+        return f"Layer(in: {self.shape[0]} out: {self.shape[1]}, activator: {self.activator.__class__.__name__})"
+
     def forward(self, x: ndarray, pass_activator: bool = False) -> ndarray:
         """レイヤにデータを投入し, 結果を返します.
 
