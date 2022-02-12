@@ -4,53 +4,96 @@
 
 from typing import List, Optional, Tuple, Union
 
+import numpy as np
 from numpy import ndarray
+from src import layer
 
-from src.activator import Activator
+from src.activator import Activator, Relu, Softmax
 from src.layer import Layer
 from src.layerdiff import LayerDifferencial
-from src.lossfunc import CrossEntropyError, LossFunction
+from src.lossfunc import CrossEntropyError
 
 
 class NeuralNetwork:
     """ニューラルネットワーク
     """
 
-    def __init__(self,
-                 layers: Optional[List[Layer]] = None,
-                 loss_func: Optional[LossFunction] = None) -> None:
-        """レイヤと損失関数を指定してニューラルネットワークを初期化します.
+    def __init__(self, input_size: int, output_size: int) -> None:
+        """入出力のニューロン数を指定してニューラルネットワークを初期化します.
 
         Args:
-            layers (Optional[List[Layer]]): レイヤ
-            loss_func (Optional[LossFunction]): 損失関数
-        """
-        self.layers: List[Layer] = layers or []
-        self.loss_func = loss_func or CrossEntropyError()
+            input_size  (int): 入力層ニューロン数
+            output_size (int): 出力層ニューロン数
 
-    def addlayer(self, layer: Layer, index: Optional[int] = None):
-        """ネットワークの指定位置にレイヤを追加します.
+        Note:
+            初期化時に自動でレイヤが追加され、最低1層のNNが生成されます.
+        """
+        self.loss_func = CrossEntropyError()
+
+        # 初期レイヤの設定
+        initial_layer = Layer.create_by((input_size, output_size), Softmax())
+        self.layers = [initial_layer]
+        self.input_size = input_size
+        self.output_size = output_size
+
+    def add_layer(self, neuron_size: int, activator: Activator, index: Optional[int] = None):
+        """ネットワークの指定位置に指定ニューロン数のレイヤを追加します.
 
         Args:
-            layer (Layer): 追加するレイヤ
-            index (Optional[int]): 追加対象の位置.
+            neuron_size (int): 追加するレイヤのニューロン数
+            activator (Activator): 追加するレイヤの活性化関数
+            index (Optional[int]): レイヤの追加位置. 指定のない場合は出力層の直前に追加されます.
+
+        Raises:
+            IndexError: 追加位置に不正な値が渡された場合.
+
+        Note:
+            既存のNN構成は破壊されます(再学習が必要になります).
         """
 
-        if index is None:
-            self.layers.append(layer)
-        else:
-            self.layers.insert(index, layer)
+        # 追加先を特定
+        index = index if index is not None else len(self.layers) - 1
+        if index < 0 or index >= len(self.layers):
+            raise IndexError(f"Invalid index: {index} Please specify 0 ~ (layer count - 1).")
 
-    def removelayer(self, index: Optional[int] = None):
+        # 1. 新しいレイヤを追加する. 行数は前のレイヤの出力数またはNNの入力数とする.
+        new_input_size = self.layers[index - 1].shape[1] if index > 0 else self.input_size
+        new_layer = Layer.create_by((new_input_size, neuron_size), activator)
+        self.layers.insert(index, new_layer)
+
+        # 2. 次のレイヤの入力数を修正する.
+        _, next_output = self.layers[index + 1].shape
+        new_next_shape = (neuron_size, next_output)
+        self.layers[index + 1] = Layer.create_by(new_next_shape, self.layers[index + 1].activator)
+
+    def remove_layer(self, index: Optional[int] = None):
         """ネットワークの指定位置にあるレイヤを削除します.
 
         Args:
-            index (Optional[int]): 削除するレイヤの位置
+            index (Optional[int]): 削除するレイヤの位置.指定のない場合は出力層の直前が削除されます.
+
+        Raises:
+            IndexError: 追加位置に不正な値が渡された場合.
+
+        Note:
+            既存のNN構成は破壊されます(再学習が必要になります).
         """
-        if index is None:
-            self.layers.pop()
-        else:
-            self.layers.pop(index)
+        raise NotImplementedError()
+
+        # 追加先を特定し、前後のレイヤインデックスを取得
+        index = index or len(self.layers) - 1
+
+        if index < 0 or index > len(self.layers):
+            raise IndexError(f"Invalid index: {index} Please specify 0 ~ layer count.")
+
+        # 既存のレイヤを削除
+        self.layers.pop(index)
+
+    def __str__(self) -> str:
+        network_info: str = f"NeuralNetwork(layer: {len(self.layers)}, loss: {self.loss_func.__class__.__name__})"
+        layers_info = "\n".join([f"\t{str(layer)}" for layer in self.layers])
+
+        return f"{network_info}\n{layers_info}"
 
     def predict(self, x: ndarray) -> ndarray:
         """入力を投入し、推論を行います.
