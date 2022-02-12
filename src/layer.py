@@ -3,7 +3,7 @@
 #
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Type
 
 import numpy as np
 from numpy import ndarray
@@ -16,27 +16,28 @@ class Layer:
     """NNの各層を表すクラス
     """
 
-    def __init__(self, w: ndarray, b: ndarray, activator: Activator) -> None:
+    def __init__(self, w: ndarray, b: ndarray, activator: Type[Activator]) -> None:
         """重みとバイアス, 活性化関数を設定してレイヤを初期化します.
 
         Args:
             w (ndarray): 重み
             b (ndarray): バイアス
+            activator (Type[Activator]): 活性化関数
         """
 
         self.w: ndarray = w
         self.b: ndarray = b
-        self.activator = activator
+        self.activator = activator()
 
         self._x: Optional[ndarray] = None
 
     @staticmethod
-    def create_by(shape: Tuple[int, int], activator: Activator) -> Layer:
+    def create_by(shape: Tuple[int, int], activator: Type[Activator]) -> Layer:
         """形状と活性化関数を指定して初期状態のレイヤを生成します.
 
         Args:
             shape (Tuple[int, int]): 形状
-            activator (Activator): 活性化関数
+            activator (Type[Activator]): 活性化関数
 
         Returns:
             Layer: 形状パラメータをもとに生成されたレイヤ
@@ -47,7 +48,7 @@ class Layer:
 
         return Layer(
             np.random.randn(*shape) * 0.01,
-            np.zeros(shape),
+            np.zeros(shape[1]),
             activator
         )
 
@@ -89,11 +90,12 @@ class Layer:
 
         return result
 
-    def backward(self, dout: ndarray) -> LayerDifferencial:
+    def backward(self, dout: ndarray, pass_activator: bool = False) -> LayerDifferencial:
         """このレイヤの逆伝播を計算します.
 
         Args:
             dout (ndarray): 出力の変化量
+            pass_activator (bool, optional): 活性化関数を通さない場合はTrueに設定します.
 
         Returns:
             LayerDifferencial: 入力の変化量
@@ -105,12 +107,13 @@ class Layer:
         if self._x is None:
             raise ValueError("Please call forward() at least once before call backward().")
 
-        # まず活性化関数に通す
-        activator_back = self.activator.backward(dout)
+        # 活性化関数に通して
+        if not pass_activator:
+            dout = self.activator.backward(dout)
 
         # 各変化量を返す
-        dx = np.dot(activator_back, self.w.T)
-        dw = np.dot(self._x.T, activator_back)
-        db = np.sum(activator_back, axis=0)
+        dx = np.dot(dout, self.w.T)
+        dw = np.dot(self._x.T, dout)
+        db = np.sum(dout, axis=0)
 
         return LayerDifferencial(dx, dw, db)

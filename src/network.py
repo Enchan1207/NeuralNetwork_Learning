@@ -2,11 +2,10 @@
 # ニューラルネットワーク
 #
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Type, Union
 
 import numpy as np
 from numpy import ndarray
-from src import layer
 
 from src.activator import Activator, Relu, Softmax
 from src.layer import Layer
@@ -31,17 +30,17 @@ class NeuralNetwork:
         self.loss_func = CrossEntropyError()
 
         # 初期レイヤの設定
-        initial_layer = Layer.create_by((input_size, output_size), Softmax())
+        initial_layer = Layer.create_by((input_size, output_size), Softmax)
         self.layers = [initial_layer]
         self.input_size = input_size
         self.output_size = output_size
 
-    def add_layer(self, neuron_size: int, activator: Activator, index: Optional[int] = None):
+    def add_layer(self, neuron_size: int, activator: Type[Activator], index: Optional[int] = None):
         """ネットワークの指定位置に指定ニューロン数のレイヤを追加します.
 
         Args:
             neuron_size (int): 追加するレイヤのニューロン数
-            activator (Activator): 追加するレイヤの活性化関数
+            activator (Type[Activator]): 追加するレイヤの活性化関数
             index (Optional[int]): レイヤの追加位置. 指定のない場合は出力層の直前に追加されます.
 
         Raises:
@@ -63,8 +62,9 @@ class NeuralNetwork:
 
         # 2. 次のレイヤの入力数を修正する.
         _, next_output = self.layers[index + 1].shape
-        new_next_shape = (neuron_size, next_output)
-        self.layers[index + 1] = Layer.create_by(new_next_shape, self.layers[index + 1].activator)
+        self.layers[index + 1] = Layer.create_by(
+            (neuron_size, next_output),
+            type(self.layers[index + 1].activator))
 
     def remove_layer(self, index: Optional[int] = None):
         """ネットワークの指定位置にあるレイヤを削除します.
@@ -90,7 +90,9 @@ class NeuralNetwork:
 
         # 2. 削除した位置と同じ位置にはさっきまで右隣にいたレイヤがいるので、その子の形状を修正する.
         _, current_output_size = self.layers[index].shape
-        self.layers[index] = Layer.create_by((trashed_input_size, current_output_size), self.layers[index].activator)
+        self.layers[index] = Layer.create_by(
+            (trashed_input_size, current_output_size),
+            type(self.layers[index].activator))
 
     def __str__(self) -> str:
         network_info: str = f"NeuralNetwork(layer: {len(self.layers)}, loss: {self.loss_func.__class__.__name__})"
@@ -112,7 +114,7 @@ class NeuralNetwork:
         result = x
         for layer in self.layers:
             # Softmax関数は通過しない
-            is_softmax: bool = isinstance(layer.activator, Activator)
+            is_softmax: bool = isinstance(layer.activator, Softmax)
             result = layer.forward(result, is_softmax)
 
         return result
@@ -149,21 +151,21 @@ class NeuralNetwork:
             List[Tuple[Layer, LayerDifferencial]]: 勾配の計算結果.
         """
 
-        # まずはforwardを回して、レイヤの状態を設定する
-        self.loss(x, t)
+        # Softmax関数は通したくないので、lossではなくpredictを使う
+        y = self.predict(x)
 
-        dout: Union[float, ndarray] = 1.0
+        # Softmax + 交差エントロピー誤差の逆伝播は (y - t) / batch_size
+        dout = (y - t) / t.shape[0]
 
-        # 損失関数の逆伝播を求め、
-        loss_back = self.loss_func.backward(dout)
-
-        # 次にレイヤのbackwardを回して勾配とする
+        # NNのレイヤを逆順に回して、各レイヤのdx, dw, dbを収集
         differencials: List[Tuple[Layer, LayerDifferencial]] = []
-        result = loss_back
-        for i in range(len(self.layers) - 1, 0, -1):  # レイヤ数~0で回すため
+        for i in range(len(self.layers) - 1, -1, -1):
             layer = self.layers[i]
-            layer_diff = layer.backward(result)
-            result = layer_diff.dx
+
+            # Softmaxなら活性化関数をスキップする
+            is_softmax: bool = isinstance(layer.activator, Softmax)
+            layer_diff = layer.backward(dout, is_softmax)
+            dout = layer_diff.dx
 
             differencials.append((layer, layer_diff))
 

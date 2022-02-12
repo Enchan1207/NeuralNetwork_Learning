@@ -3,7 +3,15 @@
 #
 import sys
 from typing import List
+
+import numpy as np
+from numpy import ndarray
+
+from src.activator import Relu
+from src.eval import evaluate_accuracy
 from src.mnist_loader import get_datamodel
+from src.network import NeuralNetwork
+from src.optimizer import SGD
 
 
 def main(args: List[str]) -> int:
@@ -13,6 +21,42 @@ def main(args: List[str]) -> int:
     print(f"\t画像:{x_train.shape}\n\t教師:{t_train.shape}")
     print("テストデータ:")
     print(f"\t画像:{x_test.shape}\n\t教師:{t_test.shape}")
+
+    # ネットワーク生成
+    network = NeuralNetwork(784, 10)
+    network.add_layer(100, Relu)
+    print(network)
+
+    # オプティマイザ生成
+    lr = 0.1
+    optimizer = SGD(lr)
+
+    # 学習開始!
+    batch_size = 100
+    train_size = x_train.shape[0]
+    step_count = 10000
+    iter_per_epoch = max(train_size / batch_size, 1)
+
+    for step in range(step_count):
+
+        # ミニバッチの生成
+        batch_indices = np.random.choice(train_size, batch_size)
+        x_batch: ndarray = x_train[batch_indices]
+        t_batch: ndarray = t_train[batch_indices]
+
+        # 勾配を計算し、オプティマイザに投入してパラメータを更新
+        gradient = network.gradient(x_batch, t_batch)
+        optimizer.update(gradient)
+
+        # 毎エポック認識精度を計算
+        if step % iter_per_epoch == 0:
+            progress = (step / step_count) * 100.0
+            train_accuracy = evaluate_accuracy(network, x_train, t_train) * 100.0
+            test_accuracy = evaluate_accuracy(network, x_test, t_test) * 100.0
+
+            print(f"進捗:{progress}% 認識精度: 訓練データ {train_accuracy:.2f}%, テストデータ {test_accuracy:.2f}%")
+
+    print("Finished!")
 
     return 0
 
