@@ -14,6 +14,7 @@ class CrossEntropyError(LossFunction):
     """
 
     def __init__(self) -> None:
+        self._y: Optional[ndarray] = None
         self._t: Optional[ndarray] = None
 
     def forward(self, y: ndarray, t: ndarray) -> ndarray:
