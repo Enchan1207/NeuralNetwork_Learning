@@ -76,18 +76,21 @@ class NeuralNetwork:
             IndexError: 追加位置に不正な値が渡された場合.
 
         Note:
-            既存のNN構成は破壊されます(再学習が必要になります).
+            レイヤが2層以上ない場合は削除できません. また既存のNN構成は破壊されます(再学習が必要になります).
         """
-        raise NotImplementedError()
 
-        # 追加先を特定し、前後のレイヤインデックスを取得
-        index = index or len(self.layers) - 1
+        # 追加先を特定
+        index = index if index is not None else len(self.layers) - 1
 
-        if index < 0 or index > len(self.layers):
-            raise IndexError(f"Invalid index: {index} Please specify 0 ~ layer count.")
+        if index < 0 or index >= len(self.layers) - 1:
+            raise IndexError(f"Invalid index: {index} Please specify 0 ~ (layer count - 1).")
 
-        # 既存のレイヤを削除
-        self.layers.pop(index)
+        # 1. 既存のレイヤを削除し、形状のみ保持しておく
+        trashed_input_size, _ = self.layers.pop(index).shape
+
+        # 2. 削除した位置と同じ位置にはさっきまで右隣にいたレイヤがいるので、その子の形状を修正する.
+        _, current_output_size = self.layers[index].shape
+        self.layers[index] = Layer.create_by((trashed_input_size, current_output_size), self.layers[index].activator)
 
     def __str__(self) -> str:
         network_info: str = f"NeuralNetwork(layer: {len(self.layers)}, loss: {self.loss_func.__class__.__name__})"
