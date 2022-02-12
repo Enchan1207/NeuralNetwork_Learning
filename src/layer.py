@@ -1,6 +1,7 @@
 #
 # NNの各層を表すクラス
 #
+from __future__ import annotations
 
 from typing import Optional, Tuple
 
@@ -28,6 +29,45 @@ class Layer:
         self.activator = activator
 
         self._x: Optional[ndarray] = None
+
+    @staticmethod
+    def create_by(shape: Tuple[int, int], activator: Activator) -> Layer:
+        """形状と活性化関数を指定して初期状態のレイヤを生成します.
+
+        Args:
+            shape (Tuple[int, int]): 形状
+            activator (Activator): 活性化関数
+
+        Returns:
+            Layer: 形状パラメータをもとに生成されたレイヤ
+
+        Note:
+            初期状態のレイヤでは、重みはガウス分布*0.01, バイアスはゼロの状態になっています.
+        """
+
+        return Layer(
+            np.random.randn(*shape) * 0.01,
+            np.zeros(shape),
+            activator
+        )
+
+    @property
+    def shape(self) -> Tuple[int, int]:
+        """レイヤの形状を返します.
+
+        Returns:
+            Tuple[int, int]: 形状(入力ニューロン数, 出力ニューロン数)
+        """
+        shape_ = self.w.shape
+        try:
+            row, col = shape_
+        except ValueError:
+            row, col = 1, shape_[0]
+
+        return (row, col)
+
+    def __str__(self) -> str:
+        return f"Layer(in: {self.shape[0]} out: {self.shape[1]}, activator: {self.activator.__class__.__name__})"
 
     def forward(self, x: ndarray, pass_activator: bool = False) -> ndarray:
         """レイヤにデータを投入し, 結果を返します.
