@@ -10,6 +10,7 @@ from src.activator import Relu
 from src.mnist_loader import get_datamodel
 from src.network import NeuralNetwork
 from src.optimizer import SGD
+from src.eval import evaluate_accuracy
 
 
 def main(args: List[str]) -> int:
@@ -33,8 +34,9 @@ def main(args: List[str]) -> int:
     batch_size = 100
     train_size = x_train.shape[0]
     step_count = 10000
+    iter_per_epoch = max(train_size / batch_size, 1)
+
     for step in range(step_count):
-        print(f"Step {step}:")
 
         # ミニバッチの生成
         batch_indices = np.random.choice(train_size, batch_size)
@@ -44,7 +46,15 @@ def main(args: List[str]) -> int:
         gradient = network.gradient(x_batch, t_batch)
         optimizer.update(gradient)
 
-    print(network)
+        # 毎エポック認識精度を計算
+        if step % iter_per_epoch == 0:
+            progress = (step / step_count) * 100.0
+            train_accuracy = evaluate_accuracy(network, x_train, t_train)
+            test_accuracy = evaluate_accuracy(network, x_test, t_test)
+
+            print(f"進捗:{progress:.2f}% 認識精度: 訓練データ {train_accuracy * 100.0:.2f}%, テストデータ {test_accuracy * 100.0:.2f}%")
+
+    print("Finished!")
 
     return 0
 
