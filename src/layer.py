@@ -47,7 +47,7 @@ class Layer:
 
         return Layer(
             np.random.randn(*shape) * 0.01,
-            np.zeros(shape),
+            np.zeros(shape[1]),
             activator
         )
 
