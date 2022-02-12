@@ -6,11 +6,12 @@ from typing import List
 
 import numpy as np
 from numpy import ndarray
+
 from src.activator import Relu
+from src.eval import evaluate_accuracy
 from src.mnist_loader import get_datamodel
 from src.network import NeuralNetwork
 from src.optimizer import SGD
-from src.eval import evaluate_accuracy
 
 
 def main(args: List[str]) -> int:
@@ -43,16 +44,17 @@ def main(args: List[str]) -> int:
         x_batch: ndarray = x_train[batch_indices]
         t_batch: ndarray = t_train[batch_indices]
 
+        # 勾配を計算し、オプティマイザに投入してパラメータを更新
         gradient = network.gradient(x_batch, t_batch)
         optimizer.update(gradient)
 
         # 毎エポック認識精度を計算
         if step % iter_per_epoch == 0:
             progress = (step / step_count) * 100.0
-            train_accuracy = evaluate_accuracy(network, x_train, t_train)
-            test_accuracy = evaluate_accuracy(network, x_test, t_test)
+            train_accuracy = evaluate_accuracy(network, x_train, t_train) * 100.0
+            test_accuracy = evaluate_accuracy(network, x_test, t_test) * 100.0
 
-            print(f"進捗:{progress:.2f}% 認識精度: 訓練データ {train_accuracy * 100.0:.2f}%, テストデータ {test_accuracy * 100.0:.2f}%")
+            print(f"進捗:{progress}% 認識精度: 訓練データ {train_accuracy:.2f}%, テストデータ {test_accuracy:.2f}%")
 
     print("Finished!")
 
