@@ -90,11 +90,12 @@ class Layer:
 
         return result
 
-    def backward(self, dout: ndarray) -> LayerDifferencial:
+    def backward(self, dout: ndarray, pass_activator: bool = False) -> LayerDifferencial:
         """このレイヤの逆伝播を計算します.
 
         Args:
             dout (ndarray): 出力の変化量
+            pass_activator (bool, optional): 活性化関数を通さない場合はTrueに設定します.
 
         Returns:
             LayerDifferencial: 入力の変化量
@@ -106,12 +107,13 @@ class Layer:
         if self._x is None:
             raise ValueError("Please call forward() at least once before call backward().")
 
-        # まず活性化関数に通す
-        activator_back = self.activator.backward(dout)
+        # 活性化関数に通して
+        if not pass_activator:
+            dout = self.activator.backward(dout)
 
         # 各変化量を返す
-        dx = np.dot(activator_back, self.w.T)
-        dw = np.dot(self._x.T, activator_back)
-        db = np.sum(activator_back, axis=0)
+        dx = np.dot(dout, self.w.T)
+        dw = np.dot(self._x.T, dout)
+        db = np.sum(dout, axis=0)
 
         return LayerDifferencial(dx, dw, db)

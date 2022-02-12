@@ -151,21 +151,21 @@ class NeuralNetwork:
             List[Tuple[Layer, LayerDifferencial]]: 勾配の計算結果.
         """
 
-        # まずはforwardを回して、レイヤの状態を設定する
-        self.loss(x, t)
+        # Softmax関数は通したくないので、lossではなくpredictを使う
+        y = self.predict(x)
 
-        dout: Union[float, ndarray] = 1.0
+        # Softmax + 交差エントロピー誤差の逆伝播は (y - t) / batch_size
+        dout = (y - t) / t.shape[0]
 
-        # 損失関数の逆伝播を求め、
-        loss_back = self.loss_func.backward(dout)
-
-        # 次にレイヤのbackwardを回して勾配とする
+        # NNのレイヤを逆順に回して、各レイヤのdx, dw, dbを収集
         differencials: List[Tuple[Layer, LayerDifferencial]] = []
-        result = loss_back
-        for i in range(len(self.layers) - 1, -1, -1):  # 逆順に回す
+        for i in range(len(self.layers) - 1, -1, -1):
             layer = self.layers[i]
-            layer_diff = layer.backward(result)
-            result = layer_diff.dx
+
+            # Softmaxなら活性化関数をスキップする
+            is_softmax: bool = isinstance(layer.activator, Softmax)
+            layer_diff = layer.backward(dout, is_softmax)
+            dout = layer_diff.dx
 
             differencials.append((layer, layer_diff))
 
