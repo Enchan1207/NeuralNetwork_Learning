@@ -30,7 +30,7 @@ class NeuralNetwork:
         self.loss_func = CrossEntropyError()
 
         # 初期レイヤの設定
-        initial_layer = Layer.create_by((input_size, output_size), Softmax())
+        initial_layer = Layer.create_by((input_size, output_size), Softmax)
         self.layers = [initial_layer]
         self.input_size = input_size
         self.output_size = output_size

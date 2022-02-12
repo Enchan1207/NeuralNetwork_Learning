@@ -22,7 +22,7 @@ def main(args: List[str]) -> int:
 
     # ネットワーク生成
     network = NeuralNetwork(784, 10)
-    network.add_layer(100, Relu())
+    network.add_layer(100, Relu)
     print(network)
 
     # オプティマイザ生成
