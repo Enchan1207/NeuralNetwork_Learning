@@ -2,11 +2,10 @@
 # ニューラルネットワーク
 #
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Type, Union
 
 import numpy as np
 from numpy import ndarray
-from src import layer
 
 from src.activator import Activator, Relu, Softmax
 from src.layer import Layer
@@ -36,12 +35,12 @@ class NeuralNetwork:
         self.input_size = input_size
         self.output_size = output_size
 
-    def add_layer(self, neuron_size: int, activator: Activator, index: Optional[int] = None):
+    def add_layer(self, neuron_size: int, activator: Type[Activator], index: Optional[int] = None):
         """ネットワークの指定位置に指定ニューロン数のレイヤを追加します.
 
         Args:
             neuron_size (int): 追加するレイヤのニューロン数
-            activator (Activator): 追加するレイヤの活性化関数
+            activator (Type[Activator]): 追加するレイヤの活性化関数
             index (Optional[int]): レイヤの追加位置. 指定のない場合は出力層の直前に追加されます.
 
         Raises:
@@ -63,8 +62,9 @@ class NeuralNetwork:
 
         # 2. 次のレイヤの入力数を修正する.
         _, next_output = self.layers[index + 1].shape
-        new_next_shape = (neuron_size, next_output)
-        self.layers[index + 1] = Layer.create_by(new_next_shape, self.layers[index + 1].activator)
+        self.layers[index + 1] = Layer.create_by(
+            (neuron_size, next_output),
+            type(self.layers[index + 1].activator))
 
     def remove_layer(self, index: Optional[int] = None):
         """ネットワークの指定位置にあるレイヤを削除します.
@@ -90,7 +90,9 @@ class NeuralNetwork:
 
         # 2. 削除した位置と同じ位置にはさっきまで右隣にいたレイヤがいるので、その子の形状を修正する.
         _, current_output_size = self.layers[index].shape
-        self.layers[index] = Layer.create_by((trashed_input_size, current_output_size), self.layers[index].activator)
+        self.layers[index] = Layer.create_by(
+            (trashed_input_size, current_output_size),
+            type(self.layers[index].activator))
 
     def __str__(self) -> str:
         network_info: str = f"NeuralNetwork(layer: {len(self.layers)}, loss: {self.loss_func.__class__.__name__})"
