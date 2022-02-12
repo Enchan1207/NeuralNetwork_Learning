@@ -15,17 +15,20 @@ class Relu(Activator):
     """
 
     def __init__(self) -> None:
-        self._y: Optional[ndarray] = None
+        self._mask: Optional[ndarray] = None
 
     def forward(self, x: ndarray) -> ndarray:
-        y: ndarray = np.vectorize(lambda n: 1 if n > 0 else 0)(x > 0)
+        mask = (x <= 0)
+        y = x.copy()
+        y[mask] = 0
 
-        self._y = y
+        self._mask = mask
         return y
 
     def backward(self, dout: ndarray) -> ndarray:
-        if self._y is None:
+        if self._mask is None:
             raise ValueError("Please call forward() at least once before call backward().")
 
-        result: ndarray = self._y * dout
+        result = dout.copy()
+        result[self._mask] = 0
         return result
