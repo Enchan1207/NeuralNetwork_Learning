@@ -114,7 +114,7 @@ class NeuralNetwork:
         result = x
         for layer in self.layers:
             # Softmax関数は通過しない
-            is_softmax: bool = isinstance(layer.activator, Activator)
+            is_softmax: bool = isinstance(layer.activator, Softmax)
             result = layer.forward(result, is_softmax)
 
         return result
@@ -162,7 +162,7 @@ class NeuralNetwork:
         # 次にレイヤのbackwardを回して勾配とする
         differencials: List[Tuple[Layer, LayerDifferencial]] = []
         result = loss_back
-        for i in range(len(self.layers) - 1, 0, -1):  # レイヤ数~0で回すため
+        for i in range(len(self.layers) - 1, -1, -1):  # 逆順に回す
             layer = self.layers[i]
             layer_diff = layer.backward(result)
             result = layer_diff.dx
