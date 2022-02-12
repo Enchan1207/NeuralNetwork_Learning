@@ -39,7 +39,7 @@ class CrossEntropyError(LossFunction):
         # tは, 各行の最大値インデックス つまり「各バッチについて(各行について)教師データの最大値は何列目か」を表す.
         # y[np.arange[batch_size], t]により, 各バッチについて「正解」にあたる部分のyの値を持ってくる.
         # (np.array[行, 列]とするとスライスを取得できる)
-        cell = t * np.log(y[np.arange(batch_size), t] + 1E-7)  # 1E-7は log(0)=NaN の回避
+        cell = np.log(y[np.arange(batch_size), t] + 1E-7)  # 1E-7は log(0)=NaN の回避
 
         result: ndarray = -np.sum(cell) / batch_size
         return result
